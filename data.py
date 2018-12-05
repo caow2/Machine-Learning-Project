@@ -24,15 +24,12 @@ def buildDataFrame(n, corner=True):
 	cols = []
 	for col in range(n):
 		lower, upper = p.calculateLowerUpper(col, n)
-		cols.append("Bin %s (%s - %s)" % (str(n), str(lower), str(upper)))
+		cols.append("Bin %s (%s - %s)" % (str(col), str(lower), str(upper)))
 	cols.append('Label') # 'A', 'B', etc.
-
 	path = 'char74k/image/goodImage/Bmp'
 	row_list = buildRows(path, n, corner)
-	df = pd.DataFrame(row_list, cols)
-	#*** Unfinished - crashes b/c row_list not the right dimensions
+	df = pd.DataFrame(row_list, columns=cols)
 	return df
-
 
 # Build a list of all rows generaeted from images 
 # Recursively step down through all Sample0XX directories from the path and process images
@@ -50,11 +47,16 @@ def buildRows(path, n, corner):
 					image = p.orb(image)
 				else:
 					image = p.canny(image)
-				image_row = p.convert_to_array(image, n)
+				image_row = p.convert_to_array(image, n).astype(object)
 				image_row = np.append(image_row, label_arr[index]) #use vstack. Resulting df is 3 x 7k
 				rows.append(image_row)
-	rows = np.array()
 	return rows
+
+# Select n training examples from each Label
+def getTrainExamples(dataFrame, n):
+	train = df.groupby('Label').apply(lambda x: x.sample(n)).reset_index(drop=True)
+	return train
+
 
 
 label_arr = buildLabelArray()
