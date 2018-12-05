@@ -3,6 +3,9 @@ import processing as p
 import pandas as pd
 import os
 import cv2
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+
 
 # Images are partitioned into different folders according to their label.
 # Sample001 = 0, Sample011 = A, Sample037 = a, Sample062 = z
@@ -52,13 +55,24 @@ def buildRows(path, n, corner):
 				rows.append(image_row)
 	return rows
 
-# Select n training examples from each Label
-def getTrainExamples(dataFrame, n):
-	train = df.groupby('Label').apply(lambda x: x.sample(n)).reset_index(drop=True)
-	return train
+# Partition dataframe into training and testing sets
+# Training size is [0,1] and represents a % of the entire dataset.
+def getTrainExamples(dataFrame, train_size):
+	y = dataFrame['Label'].to_frame()
+	x = dataFrame.drop(columns=['Label'])
+	x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=train_size)
+	return x_train, x_test, y_train, y_test
 
+# Run K Nearest Neighbors on the using the given datasets
+def kNeighbor(k, x_train, x_test, y_train, y_test):
+	#convert to 1D array for KNN purposes
+	y_train = np.ravel(y_train, order='C')
+	y_test = np.ravel(y)
 
+	knn = KNeighborsClassifier(n_neighbors=k)
+	knn.fit(x_train, y_train)
+	return knn.score(x_test, y_test) # mean accuracy 
 
 label_arr = buildLabelArray()
-df = buildDataFrame(2)
-print(df)
+#df = buildDataFrame(2)
+#print(df)
