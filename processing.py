@@ -6,12 +6,11 @@ import numpy as np
 # Preprocesses the given image and converts it to a n x n image. 
 # Depending on the parameters, a Gaussian Blur may be applied to smooth out the image and reduce noise.
 def preprocess(image, blur=False):
-	n = 50
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	# Implement gaussian filtering, bilateral filtering later #
-
-	result = cv2.resize(image, (n, n))
-	return result
+	# n = 128
+	#result = cv2.resize(image, (n, n))
+	return gray
 
 # Convert grayscale image to an np array with n elements (for n bins).
 # Each element is a count of the Grayscale pixels for that bin.
@@ -68,15 +67,14 @@ def canny(image, sigma=.33):
 
 ### Corner detection ###
 
-# Takes in a preprocessed image and returns an image with dialated corners.
-# Corners are initially detected using Oriented FAST and Rotated BRIEF (ORB).s
-# The top k corners are selected using ORB, which by default is 500.
-def orb(image, k=500):
-	o = cv2.ORB_create(k)
+# Takes in a preprocessed image and returns an image with black edges
+# Corners are initially detected using Oriented FAST and Rotated BRIEF (ORB)
+def orb(image):
+	o = cv2.ORB_create(edgeThreshold=15) # default edgeThreshold of 31 does not seem to detect many edges
 	keypoints = o.detect(image, None)
-	keypoints, descriptors = o.compute(image, keypoints) #A descriptor describe each keypoints. Not sure what to do with this 
-	result = cv2.drawKeypoints(image, keypoints, None, color=0)
-	result = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY) #drawKeypoints converts to RGB
+	keypoints, descriptors = o.compute(image, keypoints) #A descriptor uniquely describes each keypoint that is detected. Currently not sure what to do with this
+	corner_img = cv2.drawKeypoints(image, keypoints, None, color=(0,0,0))
+	result = cv2.cvtColor(corner_img, cv2.COLOR_BGR2GRAY) #drawKeypoints converts to RGB
 	return result
 
 
