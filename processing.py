@@ -5,12 +5,13 @@ import numpy as np
 
 # Preprocesses the given image and converts it to a n x n image. 
 # Depending on the parameters, a Gaussian Blur may be applied to smooth out the image and reduce noise.
-def preprocess(image, blur=False):
+def preprocess(image):
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	# Implement gaussian filtering, bilateral filtering later #
-	# n = 128
-	#result = cv2.resize(image, (n, n))
-	return gray
+	# Gaussian filtering and blur #
+	n = 64
+	result = cv2.resize(gray, (n , n))
+	result = cv2.GaussianBlur(result, (5,5), 0)
+	return result
 
 # Convert grayscale image to an np array with n elements (for n bins).
 # Each element is a count of the Grayscale pixels for that bin.
@@ -57,12 +58,15 @@ def calculateLowerUpper(index, n):
 
 # Takes in a preprocessed image and returns the edge map for the image.
 # Canny thresholds are automatically selected based on the median pixel intensity of the image.
+# The returned image is the original image with the edges overlayed over it (in white pixels).
+# This is achieved by a bitwise or
 def canny(image, sigma=.33):
 	v = np.median(image)
 	lower = int(max(0, (1.0) - sigma) * v)
 	upper = int(min(255, (1.0 + sigma) * v))
 	edged = cv2.Canny(image, lower, upper)
-	return edged
+	image = np.bitwise_or(image, edged)
+	return image
 
 
 ### Corner detection ###
@@ -72,8 +76,7 @@ def canny(image, sigma=.33):
 def orb(image):
 	o = cv2.ORB_create(edgeThreshold=15) # default edgeThreshold of 31 does not seem to detect many edges
 	keypoints = o.detect(image, None)
-	keypoints, descriptors = o.compute(image, keypoints) #A descriptor uniquely describes each keypoint that is detected. Currently not sure what to do with this
-	corner_img = cv2.drawKeypoints(image, keypoints, None, color=(0,0,0))
+	corner_img = cv2.drawKeypoints(image, keypoints, None, color=(255,255,255))
 	result = cv2.cvtColor(corner_img, cv2.COLOR_BGR2GRAY) #drawKeypoints converts to RGB
 	return result
 

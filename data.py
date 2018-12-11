@@ -3,12 +3,14 @@ import processing as p
 import pandas as pd
 import os
 import cv2
-from sklearn.model_selection import train_test_split, LeaveOneOut
+import random
+from sklearn.model_selection import train_test_split, cross_val_score, cross_val_predict
 from sklearn.neighbors import KNeighborsClassifier
-import keras
-from keras.utils import to_categorical
+from sklearn.metrics import confusion_matrix
 
 path = 'char74k/image/goodImage/Bmp'
+rand_min = 0
+rand_max = 61
 
 # Build the array to access the corresponding label by index.
 # Images are partitioned into different folders according to their label.
@@ -81,102 +83,182 @@ def meanImageSize(path):
 def getTrainExamples(dataFrame, train_size):
 	y = dataFrame['Label'].to_frame()
 	x = dataFrame.drop(columns=['Label'])
-	x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=train_size)
-	return x_train, x_test, y_train, y_test
+	return x, y
 
 # Run K Nearest Neighbors on the using the given datasets
-def kNeighbor(k, x_train, x_test, y_train, y_test):
+# 10 Fold Cross Validation
+# confusion is for calculating Confusion Matrix - only for x and y with low number of classes
+def kNeighbor(k, x, y, classes, confusion=False):
 	#convert to 1D array for KNN purposes
-	y_train = np.ravel(y_train, order='C')
-	y_test = np.ravel(y_test, order='C')
-
+	y = np.ravel(y, order='C')
 	knn = KNeighborsClassifier(n_neighbors=k)
-	knn.fit(x_train, y_train)
-	return knn.score(x_test, y_test) # mean accuracy 
+	scores = cross_val_score(knn, x, y, cv=10)
+	if(confusion): #print confusion matrix and the labels											Predicted
+		y_prediction = cross_val_predict(knn, x, y, cv=10)		#							Actual	 a 	,	b
+		c = confusion_matrix(y, y_prediction, labels=classes)	# order by labels. i.e. [a,b]->	a  True a  , True a but predict b
+		print("\tk = %s Confusion Matrix for %s" % (str(k),str(classes)))	#					b  True b but predict a , True b
+		print(c)
+	return np.mean(scores)
 
 ### Experiments ###
 
-# Test edges for n bins
-def edgeKNN(n):
+# Test edges for n bins and c classes. i.e. c = 2 would do a binary KNN for 2 selected classes
+def edgeKNN(n, c=62, confusion=False):
 	print("Running edgeKNN for n = " + str(n))
 	df = buildDataFrame(n, corner=False)
-	# Try on k for (powers of 2) - 1, up to (2^9) - 1 = 511
-	accuracy = [] # [k = 1, k = 3, k = 7, k = 15, ...]
+	accuracy = [] # [k = 1, k = 3, k = 5, k = 7, ..., k = 15] up to k = 15
 	std = []
-	power = 1
-	while power < 9:
-		k = (2 ** power) - 1
-		x_train, x_test, y_train, y_test = getTrainExamples(df, .75)
-		k_acc = [] # run experiment 5 times for each n
+	k = 1
+	while k <= 15:
+		k_acc = [] # run experiment 5 times for each k
+		# Extract the appropriate classes, split into x and y, then pass into knn
 		for n in range(0,5):
-			k_acc.append(kNeighbor(k, x_train, x_test, y_train, y_test))
+			dataframe, classes = extractClasses(df, c)
+			x, y = getTrainExamples(dataframe, .75)
+			mean_accuracy = kNeighbor(k, x, y, classes,confusion=confusion)
+			k_acc.append(mean_accuracy)
 		accuracy.append(np.mean(k_acc))
 		std.append(np.std(k_acc))
-		power+= 1
+		k += 2
 	return accuracy, std
 
 # Test corner for n bins
-def cornerKNN(n):
+def cornerKNN(n, c=62, confusion=False):
 	print("Running cornerKNN for n = " + str(n))
 	df = buildDataFrame(n, corner=True)
-	# Try on k for (powers of 2) - 1, up to (2^9) - 1 = 511
-	accuracy = [] # [k = 1, k = 3, k = 7, k = 15, ...]
+	print(df)
+	
+	accuracy = [] # [k = 1, k = 3, k = 5, k = 7, ...]
 	std = []
-	power = 1
-	while power < 9:
-		k = (2 ** power) - 1
-		x_train, x_test, y_train, y_test = getTrainExamples(df, .75)
-		k_acc = [] # run experiment 10 times for each n
+	k = 1
+	while k <= 15:
+		k_acc = [] # run experiment 5 times for each n
 		for n in range(0,5):
-			k_acc.append(kNeighbor(k, x_train, x_test, y_train, y_test))
+			dataframe, classes = extractClasses(df, c)
+			x, y = getTrainExamples(dataframe, .75)
+			mean_accuracy = kNeighbor(k, x, y, classes,confusion=confusion)
+			k_acc.append(mean_accuracy)
 		accuracy.append(np.mean(k_acc))
 		std.append(np.std(k_acc))
-		power+= 1
+		k += 2
 	return accuracy, std
 
+def extractClasses(df, c):
+	if c > 62:
+		return None
+	classes = set()
+	while(len(classes) < c):
+		label = label_arr[random.randint(rand_min,rand_max)]
+		classes.add(label)
+	return df.loc[df['Label'].isin(classes)], list(classes)
 
 
-# Test edge for n bins from powers of 2 up to 256
-def experimentEdge():
+# Test edge for n bins from powers of 2 up to 2^6 due to computation time
+# c for number of classes -> c = 2 indicates experiment on 2 label classes
+def experimentEdge(c=62, confusion=False):
 	pwr = 1
-	bin_accuracy = [] # [n = 2 bins, n = 4 bins, n = 8 bins, ...]
+	bin_accuracy = [] # [n = 2 bins, n = 4 bins, ..., n = 256 bins]
 	bin_std = []
-	while pwr <= 8:
+	while pwr <= 6:
 		n = 2 ** pwr
-		acc, std = edgeKNN(n)
+		acc, std = edgeKNN(n, c, confusion)
 		bin_accuracy.append(acc)
 		bin_std.append(std)
 		pwr += 1
 	return bin_accuracy, bin_std
 
-def experimentCorner():
+def experimentCorner(c=62, confusion=False):
 	pwr = 1
 	bin_accuracy = []
 	bin_std = []
-	while pwr <= 8:
+	while pwr <= 6:
 		n = 2 ** pwr
-		acc, std = cornerKNN(n)
+		acc, std = cornerKNN(n, c, confusion)
 		bin_accuracy.append(acc)
 		bin_std.append(std)
 		pwr += 1
 	return bin_accuracy, bin_std
 
+# Run experiments for 2, 3, 4, 5 and 62 label classes.
+# Only print confusion matrix for classes from 2 and 3 classes
+def edgeTest():
+	print("\nEdge experiments: ")
+
+	print("\n\n2 Classes:")
+	acc, std = experimentEdge(c=2, confusion=True)
+	print("Accuracy")
+	print(acc)
+	print("Standard Deviation")
+	print(std)
+
+	print("\n\n3 Classes:")
+	acc, std = experimentEdge(c=3, confusion=True)
+	print("Accuracy")
+	print(acc)
+	print("Standard Deviation")
+	print(std)
+
+	print("\n\n4 Classes:")
+	acc, std = experimentEdge(c=4)
+	print("Accuracy")
+	print(acc)
+	print("Standard Deviation")
+	print(std)
+
+	print("\n\n5 Classes:")
+	acc, std = experimentEdge(c=5)
+	print("Accuracy")
+	print(acc)
+	print("Standard Deviation")
+	print(std)
+
+	print("\n\n62 Classes:")
+	acc, std = experimentEdge()
+	print("Accuracy")
+	print(acc)
+	print("Standard Deviation")
+	print(std)
+
+def cornerTest():
+	print("\nCorner experiments: ")
+	print("\n\n2 Classes:")
+	acc, std = experimentCorner(c=2, confusion=True)
+	print("Accuracy")
+	print(acc)
+	print("Standard Deviation")
+	print(std)
+
+	print("\n\n3 Classes:")
+	acc, std = experimentCorner(c=3, confusion=True)
+	print("Accuracy")
+	print(acc)
+	print("Standard Deviation")
+	print(std)
+
+	print("\n\n4 Classes:")
+	acc, std = experimentCorner(c=4)
+	print("Accuracy")
+	print(acc)
+	print("Standard Deviation")
+	print(std)
+
+	print("\n\n5 Classes:")
+	acc, std = experimentCorner(c=5)
+	print("Accuracy")
+	print(acc)
+	print("Standard Deviation")
+	print(std)
+
+	print("\n\n62 Classes:")
+	acc, std = experimentCorner()
+	print("Accuracy")
+	print(acc)
+	print("Standard Deviation")
+	print(std)
+
 label_arr = buildLabelArray()
-
-print("\nEdge experiments: ")
-edge_acc, edge_std = experimentEdge()
-print("Edge accuracy:")
-print(edge_acc)
-print("Edge standard deviation:")
-print(edge_std)
-
-
-print("\nCorner experiments: ")
-corner_acc, corner_std = experimentCorner()
-print("Corner accuracy:")
-print(corner_acc)
-print("Corner standard deviation:")
-print(corner_std)
+#edgeTest()
+cornerTest()
 
 
 
