@@ -5,8 +5,10 @@ import numpy as np
 
 # Preprocesses the given image and converts it to a n x n image. 
 # Depending on the parameters, a Gaussian Blur may be applied to smooth out the image and reduce noise.
-def preprocess(image):
-	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def preprocess(image, grayScale=True):
+	gray = image
+	if grayScale:
+		gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
 	# Gaussian filtering and blur #
 	n = 64
 	result = cv2.resize(gray, (n , n))

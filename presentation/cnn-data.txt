@@ -1,0 +1,66 @@
+CNN with increasing layers and filter size:
+1 Layers, Filter size of 128
+Epoch 1/5: acc: 0.0665, val_acc: 0.0737
+Epoch 2/5: acc: 0.0675, val_acc: 0.0737
+Epoch 3/5: acc: 0.0718, val_acc: 0.0737
+Epoch 4/5: acc: 0.0587, val_acc: 0.0317
+Epoch 5/5: acc: 0.0692, val_acc: 0.0643
+
+2 Layers, Filter size of 256
+Epoch 1/5: acc: 0.1436, val_acc: 0.2813
+Epoch 2/5: acc: 0.4071, val_acc: 0.5034
+Epoch 3/5: acc: 0.5981, val_acc: 0.5516
+Epoch 4/5: acc: 0.6947, val_acc: 0.6082 
+Epoch 5/5: acc: 0.7563, val_acc: 0.6482
+
+3 Layers, Filter size of 512
+Epoch 1/5: acc: 0.1604, val_acc: 0.3114
+Epoch 2/5: acc: 0.4251, val_acc: 0.4266
+Epoch 3/5: acc: 0.5841, val_acc: 0.5522
+Epoch 4/5: acc: 0.6514, val_acc: 0.5599
+Epoch 5/5: acc: 0.7015, val_acc: 0.5594
+
+CNN with increasing layers and constant filter size:
+Filter size of 128
+1 Layers
+Epoch 1/5: acc: 0.0573, val_acc: 0.0618
+Epoch 2/5: acc: 0.0301, val_acc: 0.0259
+Epoch 3/5: acc: 0.0346, val_acc: 0.0768
+Epoch 4/5: acc: 0.0710, val_acc: 0.0768
+Epoch 5/5: acc: 0.0652, val_acc: 0.0768
+
+2 Layers
+Epoch 1/5: acc: 0.1179, val_acc: 0.2579
+Epoch 2/5: acc: 0.3299, val_acc: 0.4255
+Epoch 3/5: acc: 0.5260, val_acc: 0.4946
+Epoch 4/5: acc: 0.6539, val_acc: 0.5978
+Epoch 5/5: acc: 0.7163, val_acc: 0.6155
+
+3 Layers
+Epoch 1/5: acc: 0.1028, val_acc: 0.1640
+Epoch 2/5: acc: 0.2942, val_acc: 0.4074
+Epoch 3/5: acc: 0.4867, val_acc: 0.5044
+Epoch 4/5: acc: 0.5864, val_acc: 0.6160
+Epoch 5/5: acc: 0.6400, val_acc: 0.5475
+
+Filter size of 256
+1 Layers
+Epoch 1/5: acc: 0.0187, val_acc: 0.0171
+Epoch 2/5: acc: 0.0190, val_acc: 0.0171
+Epoch 3/5: acc: 0.0190, val_acc: 0.0171
+Epoch 4/5: acc: 0.0190, val_acc: 0.0171
+Epoch 5/5: acc: 0.0190, val_acc: 0.0171
+
+2 Layers
+Epoch 1/5: acc: 0.1353, val_acc: 0.2885
+Epoch 2/5: acc: 0.4360, val_acc: 0.5039
+Epoch 3/5: acc: 0.6146, val_acc: 0.5963
+Epoch 4/5: acc: 0.7001, val_acc: 0.6611
+Epoch 5/5: acc: 0.7553, val_acc: 0.6373
+
+3 Layers
+Epoch 1/5: acc: 0.1265, val_acc: 0.2045
+Epoch 2/5: acc: 0.3496, val_acc: 0.3960
+Epoch 3/5: acc: 0.4891, val_acc: 0.4925
+Epoch 4/5: acc: 0.5670, val_acc: 0.5485
+Epoch 5/5: acc: 0.6184, val_acc: 0.6061

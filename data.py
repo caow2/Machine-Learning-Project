@@ -157,7 +157,7 @@ def extractClasses(df, c):
 # c for number of classes -> c = 2 indicates experiment on 2 label classes
 def experimentEdge(c=62, confusion=False):
 	pwr = 1
-	bin_accuracy = [] # [n = 2 bins, n = 4 bins, ..., n = 256 bins]
+	bin_accuracy = [] # [n = 2 bins, n = 4 bins, ..., n = 64 bins]
 	bin_std = []
 	while pwr <= 6:
 		n = 2 ** pwr
@@ -258,7 +258,7 @@ def cornerTest():
 
 label_arr = buildLabelArray()
 #edgeTest()
-cornerTest()
-
+#cornerTest()
+print(meanImageSize(path))
 
 
