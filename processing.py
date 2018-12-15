@@ -76,7 +76,7 @@ def canny(image, sigma=.33):
 # Takes in a preprocessed image and returns an image with black edges
 # Corners are initially detected using Oriented FAST and Rotated BRIEF (ORB)
 def orb(image):
-	o = cv2.ORB_create(edgeThreshold=15) # default edgeThreshold of 31 does not seem to detect many edges
+	o = cv2.ORB_create()
 	keypoints = o.detect(image, None)
 	corner_img = cv2.drawKeypoints(image, keypoints, None, color=(255,255,255))
 	result = cv2.cvtColor(corner_img, cv2.COLOR_BGR2GRAY) #drawKeypoints converts to RGB
